@@ -24,8 +24,11 @@ Maintains tracklets (temporary object trajectories) and assigns unique IDs to de
 2.3 Module Person ReID
 
 Employs an OSNet-based ReID model (osnet_x0_75 by default) to re-identify the same person across different cameras or when they become temporarily occluded.
+
 Extracts features from detected object crops and compares them to stored features for known IDs.
-Implements a distance-based approach using a user-defined threshold (threshold=600 by default) to determine if two detections likely represent the same person.
+
+Distance-based approach using a user-defined threshold (threshold=600 by default) to determine if two detections likely represent the same person.
+
 Merges tracklets when ReID confirms object identity across cameras, ensuring consistent ID assignment throughout the system.
 
 3. Implementation
@@ -38,9 +41,6 @@ NumPy (np)
 Ultralytics (for YOLOv8)
 
 Steps:
-
-Clone or download the repository.
-
 Adjust configuration:
 Modify det_model, tracker, reid_model, source1, source2, and threshold arguments in the main function (main.py) to suit your environment:
 det_model: Path to your YOLOv8 detection model.
