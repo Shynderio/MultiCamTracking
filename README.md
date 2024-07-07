@@ -6,6 +6,8 @@ This system enables real-time object tracking across multiple video sources usin
 
 ## 2. Pipeline
 
+![alt text](pipeline.png)
+
 The system follows a modular pipeline:
 
 ### 2.1 Module Detection
