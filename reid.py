@@ -5,17 +5,27 @@ import torch
 from torchreid import metrics
 
 
-class REID:
-    def __init__(self):
+class REID():
+    def __init__(self, model_path):
         self.use_gpu = torch.cuda.is_available()
-        self.model = torchreid.models.build_model(
-            name='resnet50',
-            num_classes=1,  # human
-            loss='softmax',
-            pretrained=True,
-            use_gpu=self.use_gpu
-        )
-        # torchreid.utils.load_pretrained_weights(self.model, 'model_data/models/model.pth')
+
+        if (model_path in ['resnet50', 'resnet50mid', 'hacnn', 'pcb_p6', 'pcb_p4', 'mlfn', 'osnet_x1_0', 'osnet_x0_75', 'osnet_x0_5', 'osnet_x0_25', 'osnet_ibn_x1_0', 'osnet_ain_x1_0']):
+            self.model = torchreid.models.build_model(
+                name=model_path,
+                num_classes=1,  # human
+                loss='softmax',
+                pretrained=True,
+                use_gpu=self.use_gpu
+            )
+        else:
+            self.model = torchreid.models.build_model(
+                name='resnet50',
+                num_classes=1,  # human
+                loss='softmax',
+                pretrained=True,
+                use_gpu=self.use_gpu
+            )
+            torchreid.utils.load_pretrained_weights(self.model, model_path)
         if self.use_gpu:
             self.model = self.model.cuda()
         _, self.transform_te = build_transforms(
@@ -59,6 +69,7 @@ class REID:
             allfeatures = torch.cat(([features]), 0)
         allfeatures = torch.cat((allfeatures, features), 0)
         return allfeatures
+    
     def _cat_features(self, feats1, feats2):
         return torch.cat((feats1, feats2), 0)
 

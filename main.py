@@ -5,16 +5,17 @@ import numpy as np
 from ultralytics import YOLO
 from reid import REID
 import operator
+import argparse
+
 
 # Initialize variables
 h = 480
 w = 640
-threshold = 600
+threshold = 500
 exist_ids = set()
 final_fuse_id = dict()
 images_by_id = dict()
 feats = dict()
-reid = REID()
 
 def yolobbox2bbox(x, y, w, h):
     """Convert YOLO bbox format to traditional (top, left, bottom, right) format."""
@@ -22,16 +23,17 @@ def yolobbox2bbox(x, y, w, h):
     x2, y2 = x + w/2, y + h/2
     return int(x1), int(y1), int(x2), int(y2)
 
-def run_tracker_in_thread(filename, model, output_queue, file_index):
+def run_tracker_in_thread(filename, model, output_queue, file_index, args):
     """Thread function to run YOLOv8 object tracking on a video file or camera stream."""
     video = cv2.VideoCapture(filename)
+    reid = REID(args.reid_model)
 
     while video.isOpened():
         success, frame = video.read()
 
         if success:
             # Run YOLOv8 tracking on the frame
-            results = model.track(frame, persist=True, tracker="/home/shynderio/Python/cam-tracker/bytetrack.yaml", classes=[0])
+            results = model.track(frame, persist=True, tracker=args.tracker, classes=[0])
 
             # Extract boxes and ids from YOLOv8 results
             if results and results[0].boxes.id is not None:
@@ -136,21 +138,22 @@ def display_results(output_queue, num_sources):
 
     cv2.destroyAllWindows()
 
-def main():
+def main(args):
+    
     # Initialize YOLOv8 model
-    model_path = "yolov8n.pt"
+    model_path = args.det_model
     model1 = YOLO(model_path)
     model2 = YOLO(model_path)
     # Define video files or camera streams
-    video_file1 = 0  # Webcam (change as needed)
-    video_file2 = "https://192.168.1.11:4343/video"  # External camera URL (change as needed)
+    video_file1 = args.source1  # Webcam (change as needed)
+    video_file2 = args.source2  # External camera URL (change as needed)
 
     # Create a queue to hold processed frames for display
     output_queue = queue.Queue()
 
     # Create threads for each video source
-    tracker_thread1 = threading.Thread(target=run_tracker_in_thread, args=(video_file1, model1, output_queue, 1))
-    tracker_thread2 = threading.Thread(target=run_tracker_in_thread, args=(video_file2, model2, output_queue, 2))
+    tracker_thread1 = threading.Thread(target=run_tracker_in_thread, args=(video_file1, model1, output_queue, 1, args))
+    tracker_thread2 = threading.Thread(target=run_tracker_in_thread, args=(video_file2, model2, output_queue, 2, args))
 
     # Start the tracker threads
     tracker_thread1.start()
@@ -168,4 +171,18 @@ def main():
     display_thread.join()
 
 if __name__ == "__main__":
-    main()
+    args = argparse.ArgumentParser(description='')
+    args.add_argument('--det_model', type=str, default='yolov8n.pt',
+                        help='detecion model path')
+    args.add_argument('--tracker', type=str, default='bytetrack.yaml',
+                        help='tracker')
+    args.add_argument('--reid_model', type=str, default='osnet_x0_75',
+                      help='reid pretrain path')
+    args.add_argument('--source1', type=str, default=0,
+                        help='file/dir/URL/glob, 0 for webcam')
+    args.add_argument('--source2', type=str, default='https://192.168.182.28:4343/video',
+                        help='file/dir/URL/glob, 0 for webcam')
+    args.add_argument('--threshold', type=int, default=600,
+                      help='reid threshold')
+    args = args.parse_args()
+    main(args)
