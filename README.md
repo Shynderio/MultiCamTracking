@@ -39,7 +39,7 @@ The system follows a modular pipeline:
 ### Steps
 
 1. **Adjust Configuration:**
-   - Modify `det_model`, `tracker`, `reid_model`, `source1`, `source2`, and `threshold` arguments in the `main` function (`main.py`) to match your environment.
+   - Modify `det_model`, `tracker`, `reid_model`, `source1`, `source2`, and `threshold` arguments in the `main` function (`main.py`) 
 
 2. **Configuration Parameters:**
    - `det_model`: Path to your YOLOv8 detection model.
