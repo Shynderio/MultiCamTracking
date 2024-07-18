@@ -8,7 +8,7 @@ from torchreid import metrics
 class REID():
     def __init__(self, model_path):
         self.use_gpu = torch.cuda.is_available()
-
+        print("use_gpu: ", self.use_gpu)
         if (model_path in ['resnet50', 'resnet50mid', 'hacnn', 'pcb_p6', 'pcb_p4', 'mlfn', 'osnet_x1_0', 'osnet_x0_75', 'osnet_x0_5', 'osnet_x0_25', 'osnet_ibn_x1_0', 'osnet_ain_x1_0']):
             self.model = torchreid.models.build_model(
                 name=model_path,
@@ -65,9 +65,16 @@ class REID():
         features = self._extract_features(img)
         features = features.data.cpu()
 
-        if (allfeatures is None):
+        # if (allfeatures is None):
+        #     allfeatures = torch.cat(([features]), 0)
+        # allfeatures = torch.cat((allfeatures, features), 0)
+        if allfeatures is None:
             allfeatures = torch.cat(([features]), 0)
-        allfeatures = torch.cat((allfeatures, features), 0)
+        else:
+            allfeatures = torch.cat((allfeatures, features), 0)
+
+        if allfeatures.size(0) > 20:
+            allfeatures = allfeatures[-20:]
         return allfeatures
     
     def _cat_features(self, feats1, feats2):
